@@ -1,13 +1,188 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
+xmlns:tools="http://schemas.android.com/tools"
+android:layout_width="match_parent"
+android:layout_height="match_parent"
+tools:context=".MapActivity">
+
+<com.sothree.slidinguppanel.SlidingUpPanelLayout xmlns:sothree="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/sliding_layout"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".MapsActivity">
+    android:gravity="bottom"
+    sothree:paddingStart="10dp"
+    sothree:shadowHeight="4dp">
 
-    <org.osmdroid.views.MapView
-        android:id="@+id/mapview"
+    <!-- MAIN CONTENT -->
+    <LinearLayout
+        android:id="@+id/mapView"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        tilesource="Mapnik" />
+        android:layout_height="match_parent">
+        <!--android:paddingTop="?android:attr/actionBarSize"-->>
 
+        <org.osmdroid.views.MapView
+            android:id="@+id/mapview"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            tilesource="Mapnik" />
+    </LinearLayout>
+
+    <!-- SLIDING LAYOUT -->
+    <LinearLayout
+        android:id="@+id/dragView"
+        android:layout_width="match_parent"
+        android:layout_height="300dp"
+        android:background="#F3F3F3"
+        android:clickable="true"
+        android:focusable="false"
+        android:orientation="vertical">
+
+        <TableLayout xmlns:android="http://schemas.android.com/apk/res/android"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:background="#3366CC"
+            android:shrinkColumns="*"
+            android:stretchColumns="*">
+
+            <TableRow
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_horizontal">
+
+                <TextView
+                    android:id="@+id/airline"
+                    android:layout_width="0dip"
+                    android:layout_weight="1"
+                    android:gravity="left"
+                    android:padding="10dip"
+                    android:text="[airline]"
+                    android:textColor="#ffffff"
+                    android:textSize="20sp" />
+
+                <TextView
+                    android:id="@+id/flight_num"
+                    android:layout_width="0dip"
+                    android:layout_weight="1"
+                    android:gravity="right"
+                    android:padding="5dip"
+                    android:text="AB1029"
+                    android:textColor="#ffffff"
+                    android:textSize="20sp" />
+            </TableRow>
+
+            <TableRow
+                android:id="@+id/tableRow1"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+                <TextView
+                    android:id="@+id/origin_IATA"
+                    android:layout_width="0dip"
+                    android:layout_weight="1"
+                    android:gravity="center"
+                    android:text="ORG"
+                    android:textColor="#ffffff"
+                    android:textSize="40sp" />
+
+                <TextView
+                    android:id="@+id/arrow"
+                    android:layout_width="0dip"
+                    android:layout_weight="1"
+                    android:gravity="center"
+                    android:text="@string/arrow"
+                    android:textColor="#ffffff"
+                    android:textSize="40sp" />
+
+                <TextView
+                    android:id="@+id/destination_IATA"
+                    android:layout_width="0dip"
+                    android:layout_weight="1"
+                    android:gravity="center"
+                    android:text="DES"
+                    android:textColor="#ffffff"
+                    android:textSize="40sp" />
+            </TableRow>
+
+            <TableRow
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_horizontal">
+
+                <TextView
+                    android:id="@+id/origin_airport_name"
+                    android:layout_width="0dip"
+                    android:layout_weight="1"
+                    android:gravity="left"
+                    android:padding="8dip"
+                    android:text="Origin Airport Name"
+                    android:textColor="#ffffff"
+                    android:textSize="14sp" />
+
+                <TextView
+                    android:id="@+id/destination_airport_name"
+                    android:layout_width="0dip"
+                    android:layout_weight="1"
+                    android:gravity="right"
+                    android:padding="8dip"
+                    android:text="Destination Airport Name"
+                    android:textColor="#ffffff"
+                    android:textSize="14sp" />
+            </TableRow>
+
+            <TableRow
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_horizontal">
+
+                <TextView
+                    android:id="@+id/aircraft"
+                    android:layout_width="0dip"
+                    android:layout_weight="2"
+                    android:gravity="left"
+                    android:padding="10dip"
+                    android:text="Boeing 777-300ER"
+                    android:textColor="#ffffff"
+                    android:textSize="18sp" />
+
+                <TextView
+                    android:id="@+id/registration"
+                    android:layout_width="0dip"
+                    android:layout_weight="1"
+                    android:gravity="right"
+                    android:padding="10dip"
+                    android:text="VT-ALM"
+                    android:textColor="#ffffff"
+                    android:textSize="18sp" />
+            </TableRow>
+
+            <TableRow
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_horizontal">
+
+                <TextView
+                    android:id="@+id/speed"
+                    android:layout_width="0dip"
+                    android:layout_weight="1"
+                    android:gravity="left"
+                    android:padding="18dip"
+                    android:text="300 kts"
+                    android:textColor="#ffffff"
+                    android:textSize="20sp" />
+
+                <TextView
+                    android:id="@+id/altitude"
+                    android:layout_width="0dip"
+                    android:layout_weight="1"
+                    android:gravity="right"
+                    android:padding="18dip"
+                    android:text="10000 ft"
+                    android:textColor="#ffffff"
+                    android:textSize="20sp" />
+            </TableRow>
+
+        </TableLayout>
+
+
+    </LinearLayout>
+</com.sothree.slidinguppanel.SlidingUpPanelLayout>
 </RelativeLayout>
