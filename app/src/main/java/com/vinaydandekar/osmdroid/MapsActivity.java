@@ -2,6 +2,12 @@ package com.vinaydandekar.osmdroid;
 
 import android.app.Activity;
 import android.content.Context;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.Canvas;
+import android.graphics.ColorFilter;
+import android.graphics.drawable.BitmapDrawable;
+import android.graphics.drawable.Drawable;
 import android.location.Location;
 import android.location.LocationManager;
 import android.os.AsyncTask;
@@ -70,10 +76,20 @@ public class MapsActivity extends Activity implements ConnectionCallbacks, OnCon
     // Layout objects for sliding up panel
     private SlidingUpPanelLayout slidingup_panel;
 
+    Bitmap bitmap = null;
+    Bitmap newImage = null;
+    Drawable d = null;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_maps);
+
+        bitmap = BitmapFactory.decodeResource(getResources(), R.drawable.orange_large);
+        newImage = Bitmap.createBitmap(bitmap, 0, 0, 36, 38);
+        d = new BitmapDrawable(getResources(),newImage);
+
+        slidingup_panel = (SlidingUpPanelLayout) findViewById(R.id.sliding_layout);
 
 
 
@@ -92,6 +108,8 @@ public class MapsActivity extends Activity implements ConnectionCallbacks, OnCon
         locationRequest.setInterval(5000);
         locationRequest.setFastestInterval(1000);
         locationClient.connect();
+
+
 
     }
 
@@ -173,13 +191,13 @@ public class MapsActivity extends Activity implements ConnectionCallbacks, OnCon
      * Allows the user the refresh the data manually if data is stale or if the application
      * is not able to connect to the flight server.
      */
-    public void refresh() {
+    /*public void refresh() {
         locationClient.requestLocationUpdates(locationRequest, this);
         flightMarkerMap.clear();
         mMap.clear();
 
         setUpMap();
-    }
+    }*/
 
     private void setUpMapIfNeeded() {
         // Do a null check to confirm that we have not already instantiated the map.
@@ -211,7 +229,7 @@ public class MapsActivity extends Activity implements ConnectionCallbacks, OnCon
         mMapView.setMultiTouchControls(true);
         mMapView.setAnimationCacheEnabled(true);
         mMapView.setClickable(true);
-        mMapView.setTileSource(TileSourceFactory.MAPNIK);
+        mMapView.setTileSource(TileSourceFactory.MAPQUESTOSM);
 
         // Add a listener for a single tap on the map to close any open InfoWindows
         MapEventsReceiver mReceive = new MapEventsReceiver() {
@@ -234,11 +252,14 @@ public class MapsActivity extends Activity implements ConnectionCallbacks, OnCon
 
         // Create a marker for current location
         Marker startMarker = new Marker(mMapView);
-        startMarker.setPosition(new GeoPoint(myLocation.getLatitude(), myLocation.getLongitude()));
+        GeoPoint centerPoint = new GeoPoint(myLocation.getLatitude(), myLocation.getLongitude());
+        startMarker.setPosition(centerPoint);
         startMarker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM);
         startMarker.setIcon(getResources().getDrawable(R.drawable.person));
+        startMarker.setInfoWindow(null);
         mMapView.getOverlays().add(startMarker);
         mMapView.invalidate();
+        mapController.animateTo(centerPoint);
 
         if (myLocation != null) {
             setTargetUrl(myLocation, ipAddr);
@@ -388,17 +409,62 @@ public class MapsActivity extends Activity implements ConnectionCallbacks, OnCon
 
                     // Create a marker
                     Marker startMarker = new Marker(mMapView);
-                    startMarker.setPosition(new GeoPoint (f.getLatitude(), f.getLongitude()));
-                    startMarker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_BOTTOM);
-                    startMarker.setIcon(getResources().getDrawable(R.drawable.person));
+                    startMarker.setPosition(new GeoPoint(f.getLatitude(), f.getLongitude()));
+                    startMarker.setIcon(d);
                     startMarker.setTitle(f.getFlightNum());
                     startMarker.setSnippet(f.getAircraft());
                     startMarker.setRelatedObject(f);
+                    startMarker.setRotation(f.getTrack());
+                    startMarker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_CENTER);
+                    startMarker.setInfoWindowAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_TOP);
+
+                    startMarker.setOnMarkerClickListener(new Marker.OnMarkerClickListener() {
+                        @Override
+                        public boolean onMarkerClick(Marker marker, MapView mapView) {
+                            InfoWindow.closeAllInfoWindowsOn(mMapView);
+                            marker.showInfoWindow();
+                            mapView.getController().animateTo(marker.getPosition());
+                            return true;
+                        }
+                    });
+                    final Marker mark = startMarker;
                     MarkerInfoWindow window = new MarkerInfoWindow(R.layout.bonuspack_bubble_black, mMapView);
+                    window.getMarker();
                     window.setOnMarkerInfoWindowTouchListener(new View.OnTouchListener() {
                         @Override
                         public boolean onTouch(View view, MotionEvent motionEvent) {
                             Log.d("debug", "Touched InfoWindow");
+                            Flight f = (Flight) mark.getRelatedObject();
+                            TextView flight_num = (TextView) findViewById(R.id.flight_num);
+                            TextView origin = (TextView) findViewById(R.id.origin_IATA);
+                            TextView destination = (TextView) findViewById(R.id.destination_IATA);
+                            TextView reg = (TextView) findViewById(R.id.registration);
+                            TextView speed = (TextView) findViewById(R.id.speed);
+                            TextView alt = (TextView) findViewById(R.id.altitude);
+                            TextView originName = (TextView) findViewById(R.id.origin_airport_name);
+                            TextView destinationName = (TextView) findViewById(R.id.destination_airport_name);
+                            TextView aircraft = (TextView) findViewById(R.id.aircraft);
+                            TextView airline = (TextView) findViewById(R.id.airline);
+
+                            flight_num.setText(f.getFlightNum());
+                            origin.setText(f.getOrigin());
+                            destination.setText(f.getDestination());
+                            if (f.getRegistration().equals("")) {
+                                reg.setText("No registration");
+                            } else {
+                                reg.setText(f.getRegistration());
+                            }
+                            speed.setText(f.getSpeed() + " kts");
+                            alt.setText(String.format("%,8d", f.getAltitude()) + " ft");
+
+                            originName.setText("Loading...");
+                            destinationName.setText("Loading...");
+                            aircraft.setText("Loading...");
+                            airline.setText("Loading...");
+                            GetFlightInfoTask infoTask = new GetFlightInfoTask();
+                            infoTask.execute(f.getFlight_id());
+
+                            slidingup_panel.expandPanel();
                             return true;
                         }
                     });
@@ -406,14 +472,14 @@ public class MapsActivity extends Activity implements ConnectionCallbacks, OnCon
                     mMapView.getOverlays().add(startMarker);
                     mMapView.invalidate();
 
-                    com.google.android.gms.maps.model.Marker m = mMapView.addMarker(new MarkerOptions().position(new LatLng(f.getLatitude(), f.getLongitude())).title(f.getFlightNum()).snippet(f.getAircraft()).icon(BitmapDescriptorFactory.fromBitmap(newImage)));
-                    m.setRotation(f.getTrack()-180);
-                    flightMarkerMap.put(m, f);
+                    //com.google.android.gms.maps.model.Marker m = mMapView.addMarker(new MarkerOptions().position(new LatLng(f.getLatitude(), f.getLongitude())).title(f.getFlightNum()).snippet(f.getAircraft()).icon(BitmapDescriptorFactory.fromBitmap(newImage)));
+                    //m.setRotation(f.getTrack()-180);
+                    //flightMarkerMap.put(m, f);
 
                     /*CameraPosition cameraPosition = new CameraPosition.Builder().target(
                             new LatLng(myLocation.getLatitude(), myLocation.getLongitude())).zoom(8).build();*/
 
-                    mMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
+                    /*mMap.animateCamera(CameraUpdateFactory.newCameraPosition(cameraPosition));
                     mMap.setMyLocationEnabled(true);
                     mMap.getUiSettings().setMyLocationButtonEnabled(true);
                     mMap.setOnInfoWindowClickListener(new GoogleMap.OnInfoWindowClickListener() {
@@ -451,7 +517,7 @@ public class MapsActivity extends Activity implements ConnectionCallbacks, OnCon
 
                             slidingup_panel.expandPanel();
                         }
-                    });
+                    });*/
                 }
             }
         }

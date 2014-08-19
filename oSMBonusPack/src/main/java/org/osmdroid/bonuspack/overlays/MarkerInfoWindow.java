@@ -75,7 +75,7 @@ public class MarkerInfoWindow extends InfoWindow {
 		Spanned snippetHtml = Html.fromHtml(snippet);
 		((TextView)mView.findViewById(mDescriptionId /*R.id.description*/)).setText(snippetHtml);
 		
-		//handle sub-description, hidding or showing the text view:
+		//handle sub-description, hiding or showing the text view:
 		TextView subDescText = (TextView)mView.findViewById(mSubDescriptionId);
 		String subDesc = mMarkerRef.getSubDescription();
 		if (subDesc != null && !("".equals(subDesc))){
@@ -99,5 +99,9 @@ public class MarkerInfoWindow extends InfoWindow {
 		mMarkerRef = null;
 		//by default, do nothing else
 	}
+
+    public Marker getMarker() {
+        return mMarkerRef;
+    }
 	
 }
